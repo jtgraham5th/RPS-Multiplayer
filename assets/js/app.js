@@ -12,8 +12,8 @@ firebase.initializeApp(config);
 
 // Create a variable to reference the database
 var database = firebase.database();
-var player1Choice = "";
-var player2Choice = "";
+var choice = "";
+var winlose = "";
 
 // $("#player1").on("click", function(event) {
 //     // Prevent the page from refreshing
@@ -58,26 +58,16 @@ var chatRef = database.ref("/chat")
 var userChat
 var queueRef = database.ref("/queue")
 var queueNum
+var gameRef = database.ref("/gameroom");
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
 //--------------
 var username = "";
 var ready ="";
-var userRef = lobbyRef.push({
+var lobbyRef = lobbyRef.push({
     username: username,
     ready: ready,
-})
-
-
-//--------------
-
-// var usernameRef = userRef.child("username");
-// var choiceRef = userRef.child("choice");
-// var ready = userRef.child("ready")
-//-------------
-// var queueRef = queue.child("Test")
-// var message = chatRef.set("");
-// var rps = choiceRef.set("Rock");
+});
 
 connectedRef.on("value", function (snap) {
     if (snap.val()) {
@@ -86,7 +76,7 @@ connectedRef.on("value", function (snap) {
             chat: "",
         });
         con.onDisconnect().remove();
-        userRef.onDisconnect().remove();
+        lobbyRef.onDisconnect().remove();
         userChat.onDisconnect().remove();
     };
     connectionsRef.on("value", function (snap) {
@@ -101,24 +91,43 @@ connectedRef.on("value", function (snap) {
 //--- Submit Chat Button---
 $("#ready").on("click", function (event) {
     event.preventDefault();
-    queueRef.on("value", function (snapshot){
-        queueNum = snapshot.numChildren()
-        console.log("---" + queueNum + "---")
-    });
-       var userInQueue = queueRef.push({
+    lobbyRef.remove();
+    var userInQueue = queueRef.push({
         username: username,
         ready: ready,
     });
-    userInQueue.onDisconnect().remove();
-    userRef.remove(); 
+    gameRef.on("value", function(snapshot){
+        gameNum = snapshot.numChildren();
+        console.log("Number of Game Rooms: " + gameNum)
+    });
+    queueRef.on("value", function (snapshot){
+        queueNum = snapshot.numChildren();
+        if (queueNum >= 2) {
+            userInQueue.remove();
+            var createRoom = gameRef.child("Room" + gameNum);
+            createRoom.push({
+                    choice: choice,
+                    winlose: winlose,
+                });
+                queueRef.off("value");
+            numRoom = gameRef.numChildren;
+            createRoom.onDisconnect().remove();  
+            userInQueue.onDisconnect().remove();
+            createRoom.on("child_added", function (snap){
+                numRoom = snap.numChildren;
+                console.log("There are " + numRoom + "rooms.")
+            });
+            
+            gameRef.on("value", function (snapshot){
+                
+            })
+                console.log("---" + queueNum + "---")
+        }
+    });
+    
+     
 });
 
-database.ref("/lobby").on("value", function (snapshot){
-    console.log(snapshot.val());
-    // queue.child(database.ref("/lobby/user/ready"));
-
-
-})
 //--- Submit Chat Button---
 $("#submit").on("click", function (event) {
     event.preventDefault();
@@ -126,21 +135,24 @@ $("#submit").on("click", function (event) {
     var userInput = $("#chat").val();
     userChat.child("chat").set(userInput);
     $("#chat").val("")
-    
-    
-    
 });
+
 chatRef.on("child_changed", function (snapshot) {
     var chatDiv = $("<h4>");
     var newMessage = snapshot.child("chat").val();
     console.log(snapshot.child("chat").val());
     $(chatDiv).html(":" + newMessage);
     $("#chatBox").append(chatDiv);
+    
 
 }, function (errorObject) {
 console.log("Errors handled: " + errorObject.code);
 });
-//--- Firebase watcher, listens and executes function when a child element is changed in the chat pathway---
+
+database.ref("/lobby").on("value", function (snapshot){
+    console.log(snapshot.val());
+    // queue.child(database.ref("/lobby/user/ready"));
+})//--- Firebase watcher, listens and executes function when a child element is changed in the chat pathway---
 
 //
 
