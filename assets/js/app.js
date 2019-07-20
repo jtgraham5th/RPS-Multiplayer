@@ -19,16 +19,7 @@ var winlose = "";
 //     // Prevent the page from refreshing
 //     player1
 
-$("#paper").on("click", function (event) {
-    // Prevent the page from refreshing
-    event.preventDefault();
-    player1Choice = "paper"
-    alert(player1Choice);
 
-    database.ref().set({
-        player1Choice: player1Choice
-    });
-});
 
 $("#rock").on("click", function (event) {
     // Prevent the page from refreshing
@@ -59,6 +50,10 @@ var userChat
 var queueRef = database.ref("/queue")
 var queueNum
 var gameRef = database.ref("/gameroom");
+var gameNum = 0
+var playerKey
+var player1Choice = ""
+var player2Choice = ""
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
 //--------------
@@ -68,6 +63,7 @@ var lobbyRef = lobbyRef.push({
     username: username,
     ready: ready,
 });
+var wins = 0;
 
 connectedRef.on("value", function (snap) {
     if (snap.val()) {
@@ -90,38 +86,139 @@ connectedRef.on("value", function (snap) {
 //Firebase organizes the users by the ones that are ready and makes a copy of the 1st two ready users and puts them in the /game path.
 //--- Submit Chat Button---
 $("#ready").on("click", function (event) {
+    $(this).attr("disabled", true);
     event.preventDefault();
     lobbyRef.remove();
     var userInQueue = queueRef.push({
         username: username,
         ready: ready,
     });
-    gameRef.on("value", function(snapshot){
+    gameRef.on("child_added", function(snapshot){
         gameNum = snapshot.numChildren();
         console.log("Number of Game Rooms: " + gameNum)
     });
     queueRef.on("value", function (snapshot){
         queueNum = snapshot.numChildren();
+        console.log("Users in Queue: " + queueNum)
         if (queueNum >= 2) {
             userInQueue.remove();
             var createRoom = gameRef.child("Room" + gameNum);
-            createRoom.push({
+            var userRoom = createRoom.push({
                     choice: choice,
-                    winlose: winlose,
-                });
-                queueRef.off("value");
-            numRoom = gameRef.numChildren;
-            createRoom.onDisconnect().remove();  
-            userInQueue.onDisconnect().remove();
-            createRoom.on("child_added", function (snap){
-                numRoom = snap.numChildren;
-                console.log("There are " + numRoom + "rooms.")
+                    wins: wins,
             });
+            createRoom.onDisconnect().remove();
+            
+            createRoom.on("child_added", function (snap){
+                gameKey = snap.key;
+                console.log("Your room is called " + gameKey + " .")
+                if (userRoom.key != gameKey) {
+                    playerKey = userRoom.key;
+                    console.log("The other users room is: " + playerKey)
+                }
+            });
+
+                queueRef.off("value");
+                $("#gameplay").removeClass("d-none");
+                $("#score").removeClass("d-none");
+                $("#chatBox").removeClass("d-none");
+                $("#gameplay").addClass("d-flex");
+                $("#score").addClass("d-flex");
+                $("#chatBox").addClass("d-flex flex-column");
+
+                userRoom.on("value", function (snap){
+                    player2Choice = snap.child("choice").val()
+                    if (player2Choice === "paper") {
+                        $("#rock2").addClass("d-none");
+                        $("#scissors2").addClass("d-none");
+                        $("#text-update").text("Player 2 is Ready!")
+                    } else if (player2Choice === "rock") {
+                        $("#paper2").addClass("d-none");
+                        $("#scissors2").addClass("d-none");
+                        $("#text-update").text("Player 2 is Ready!")
+                    } else if (player2Choice === "scissors") {
+                        $("#rock2").addClass("d-none");
+                        $("#paper2").addClass("d-none");
+                        $("#text-update").text("Player 2 is Ready!")
+                    } else {
+                        $("#text-update").text("Waiting for other Player")
+                    }
+                    rpsGame()
+                });
+
+                function rpsGame() {
+                    if (player1Choice && player2Choice) {
+                        if ((player1Choice === "rock" && player2Choice === "scissors") ||
+                                (player1Choice === "scissors" && player2Choice === "paper") || 
+                                (player1Choice === "paper" && player2Choice === "rock")) {
+                                    wins++;
+                                    var winDiv = $("<img src=assets/images/win.png width=50px height=50px>");
+                                    $("#player1score").append(winDiv);
+                                    $("#text-update").text("You Won!")
+                                    var nextButton = $("<button id='nextRound' class='btn btn-secondary>Next Round</button>");
+                                    $("#text-update").append(nextButton)
+                                } else if (player1Choice === player2Choice) {
+                                    $("#text-update").text("Draw!")
+                                    var nextButton = $("<button id='nextRound' class='btn btn-secondary>Next Round</button>");
+                                    nextButton.appendTo("#text-update")
+                                } else {
+                                    var loseDiv = $("<img src=assets/images/lose.png width=50px height=50px>");
+                                    $("#player1score").append(loseDiv);
+                                    $("#text-update").text("You Lost!")
+                                    var nextButton = $("<button id='nextRound' class='btn btn-secondary>Next Round</button>");
+                                    $("#text-update").append(nextButton)
+                                }
+                    } else if (player1Choice === "undefined" || player1Choice === "undefined") {
+                        $("#text-update").text("Still waiting for other Player")
+                    }
+                    
+                };
+                
+                $("#paper1").on("click", function (event) {
+                    // Prevent the page from refreshing
+                    event.preventDefault();
+                    createRoom.child(gameKey).update({
+                        choice: "paper"
+                    });
+                    player1Choice = "paper"
+                    $("#rock1").addClass("d-none");
+                    $("#scissors1").addClass("d-none")
+                    rpsGame()
+                });
+
+                $("#scissors1").on("click", function (event) {
+                    // Prevent the page from refreshing
+                    event.preventDefault();
+                    createRoom.child(gameKey).update({
+                        choice: "scissors"
+                    });
+                    player1Choice = "scissors"
+                    $("#rock1").addClass("d-none");
+                    $("#paper1").addClass("d-none")
+                    rpsGame()
+                });
+                
+
+                $("#rock1").on("click", function (event) {
+                    // Prevent the page from refreshing
+                    event.preventDefault();
+                    createRoom.child(gameKey).update({
+                        choice: "rock"
+                    });
+                    player1Choice = "rock"
+                    $("#paper1").addClass("d-none");
+                    $("#scissors1").addClass("d-none")
+                    rpsGame()
+                });
+            
+              
+            userInQueue.onDisconnect().remove();
+            
             
             gameRef.on("value", function (snapshot){
                 
             })
-                console.log("---" + queueNum + "---")
+                
         }
     });
     
@@ -149,10 +246,9 @@ chatRef.on("child_changed", function (snapshot) {
 console.log("Errors handled: " + errorObject.code);
 });
 
-database.ref("/lobby").on("value", function (snapshot){
-    console.log(snapshot.val());
+
     // queue.child(database.ref("/lobby/user/ready"));
-})//--- Firebase watcher, listens and executes function when a child element is changed in the chat pathway---
+//--- Firebase watcher, listens and executes function when a child element is changed in the chat pathway---
 
 //
 

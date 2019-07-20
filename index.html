@@ -10,25 +10,58 @@
 <title>Title</title>
 </head>
 <body>
-<button id="player1">Player 1</button>
-<button id="player2">Player 2</button>
-<button id="rock">Rock</button>
-<button id="paper">Paper</button>
-<button id="scissors">Scissors</button>
-<div id="user">???</div>
+<div id="gameplay" class="d-none row text-center p-4  justify-content-center">
+    <div id="player1score" class="row-fluid text-center justify-content-center bg-light border">
+            <h2>Score: </h2>
+    </div>
+    <div id="choiceHolder1" class="col-md-5 d-flex justify-content-center w-75 m-4">
+        <div id="rock1" class="card bg-dark text-white w-25 align-items-center justify-content-center">
+            <img src="assets/images/rock.gif" class="card-img " alt="rock">
+            <h2 class="card-title">Rock</h2>   
+        </div>
+        <div id="paper1" class="card bg-dark text-white w-25 align-items-center justify-content-center">
+            <img src="assets/images/paper.gif" class="card-img w-50" alt="rock">
+            <h2 class="card-title">Paper</h2>
+        </div>
+        <div id="scissors1" class="card bg-dark text-white w-25 align-items-center justify-content-center">
+            <img src="assets/images/scissors.gif" class="card-img w-50" alt="rock">
+            <h2 class="card-title">Scissors</h2>
+        </div>
+    </div>
+    <div id="text-update" class="col-md-12 h2">...</div>   
+    <div id="choiceHolder2" class="col-md-5 d-flex justify-content-center w-75 m-4">
+        <div id="rock2" class="card bg-dark text-white w-25 align-items-center justify-content-center">
+            <img src="assets/images/rock.gif" class="card-img " alt="rock">
+            <h2 class="card-title">Rock</h2>   
+        </div>
+        <div id="paper2" class="card bg-dark text-white w-25 align-items-center justify-content-center">
+            <img src="assets/images/paper.gif" class="card-img w-50" alt="rock">
+            <h2 class="card-title">Paper</h2>
+        </div>
+        <div id="scissors2" class="card bg-dark text-white w-25 align-items-center justify-content-center">
+            <img src="assets/images/scissors.gif" class="card-img w-50" alt="rock">
+            <h2 class="card-title">Scissors</h2>
+        </div>
+    </div>
+    <div id="player2score" class="row-fluid text-center justify-content-center bg-light border">
+        <h2>Score: </h2>
+    </div>
+</div>    
 
-<div id="viewers"></div>
+
+
+
 
 <div id="clicks"></div>
 You are player #  <div id="playerNumber"></div>
 
 <h4>There are a total of <span id="watchers"></span> users are ready to play!</h4>
-<div id="chatBox" class="container border border-dark bg-secondary text-center" style="height:200px; overflow-y:auto;"> </div>
+<div id="chatBox" class="d-none container border border-dark bg-secondary text-center" style="height:200px; overflow-y:auto;"> </div>
 <form class="text-center">
     <input id="chat" class="w-75">
     <button id="submit" class="btn btn-primary">Submit</button>
 </form>
-<h1>Are you ready to begin?</h1><button id="ready" class="button btn-danger">Ready!</button>
+<h1>Are you ready to begin?</h1><button id="ready" class="btn btn-danger btn-large">Ready!</button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.15.0/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
