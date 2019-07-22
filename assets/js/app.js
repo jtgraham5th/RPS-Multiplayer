@@ -26,6 +26,7 @@ var choice = ""
 var player2Key = ""
 var player1Choice = ""
 var player2Choice = ""
+var player1Ready = true;
 var player2Ready = true;
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
@@ -142,7 +143,9 @@ $("#ready").on("click", function (event) {
                     } else if (player1Choice === player2Choice) {
                         $("#text-update").text("Draw!")
                         var nextButton = $("<button id='nextRound' class='btn btn-secondary ml-4'>Next Round</button>");
-                        nextButton.appendTo("#text-update")
+                        $("#text-update").append(nextButton)
+                    } else if (player2Choice == "") {
+                        $("#text-update").text("Still Waiting on other Player")
                     } else {
                         var loseDiv = $("<img src=assets/images/lose.png width=50px height=50px class=m-2>");
                         var winDiv = $("<img src=assets/images/win.png width=50px height=50px class=m-2>");
@@ -162,86 +165,94 @@ $("#ready").on("click", function (event) {
                         gameRoom.child(player2Key).update({
                             choice: ""
                         });
-
+                        gameRoom.child(player2Key).child("choice").on("value", function (snap) {
+                            player2Choice = snap.val();
+                        });
+                        gameRoom.child(player1Key).child("choice").on("value", function (snap) {
+                            player1Choice = snap.val();
+                        });
                         gameRoom.child(player2Key).child("ready").on("value", function (snap) {
                             player2Ready = snap.val()
                             console.log(player2Ready);
+                            checkReady();
                         });
-
                         gameRoom.child(player1Key).child("ready").on("value", function (snap) {
                             player1Ready = snap.val()
                             console.log(player1Ready);
+                            checkReady();
                         });
-
-                        if (player2ready && player1Ready) {
-                            $("#paper1").removeClass("d-none");
-                            $("#scissors1").removeClass("d-none");
-                            $("#rock1").removeClass("d-none");
-                            $("#paper2").removeClass("d-none");
-                            $("#scissors2").removeClass("d-none");
-                            $("#rock2").removeClass("d-none");
-                            nextButton.remove();
-                            $("#text-update").text("You Won " + wins + " times");
-                        } else {
-                            $("#text-update").text("Waiting for Next Round");
+                        function checkReady() {
+                            if (player2ready && player1Ready) {
+                                $("#paper1").removeClass("d-none");
+                                $("#scissors1").removeClass("d-none");
+                                $("#rock1").removeClass("d-none");
+                                $("#paper2").removeClass("d-none");
+                                $("#scissors2").removeClass("d-none");
+                                $("#rock2").removeClass("d-none");
+                                nextButton.remove();
+                                $("#text-update").text("You Won " + wins + " times");
+                                rps();
+                            } else {
+                                $("#text-update").text("Waiting for Next Round");
+                            }
                         }
                     });
                 };
             }
-        
-
-        $("#paper1").on("click", function (event) {
-            // Prevent the page from refreshing
-            event.preventDefault();
-            gameRoom.child(player1Key).update({
-                choice: "paper"
-            });
-            player1Choice = "paper"
-            console.log("player 1 choice: " + player1Choice)
-            console.log("player 2 choice: " + player2Choice)
-            $("#rock1").addClass("d-none");
-            $("#scissors1").addClass("d-none")
-            gameRoom.child(player1Key).update({
-                ready: false
-            });
-            rpsGame()
-        });
-
-        $("#scissors1").on("click", function (event) {
-            // Prevent the page from refreshing
-            event.preventDefault();
-            gameRoom.child(player1Key).update({
-                choice: "scissors"
-            });
-            player1Choice = "scissors"
-            console.log("player 1 choice: " + player1Choice)
-            console.log("player 2 choice: " + player2Choice)
-            $("#rock1").addClass("d-none");
-            $("#paper1").addClass("d-none");
-            gameRoom.child(player1Key).update({
-                ready: false
-            });
-
-            rpsGame()
-        });
 
 
-        $("#rock1").on("click", function (event) {
-            // Prevent the page from refreshing
-            event.preventDefault();
-            gameRoom.child(player1Key).update({
-                choice: "rock"
+            $("#paper1").on("click", function (event) {
+                // Prevent the page from refreshing
+                event.preventDefault();
+                gameRoom.child(player1Key).update({
+                    choice: "paper"
+                });
+                player1Choice = "paper"
+                console.log("player 1 choice: " + player1Choice)
+                console.log("player 2 choice: " + player2Choice)
+                $("#rock1").addClass("d-none");
+                $("#scissors1").addClass("d-none")
+                gameRoom.child(player1Key).update({
+                    ready: false
+                });
+                rpsGame()
             });
-            player1Choice = "rock"
-            console.log("player 1 choice: " + player1Choice)
-            console.log("player 2 choice: " + player2Choice)
-            $("#paper1").addClass("d-none");
-            $("#scissors1").addClass("d-none");
-            gameRoom.child(player1Key).update({
-                ready: false
+
+            $("#scissors1").on("click", function (event) {
+                // Prevent the page from refreshing
+                event.preventDefault();
+                gameRoom.child(player1Key).update({
+                    choice: "scissors"
+                });
+                player1Choice = "scissors"
+                console.log("player 1 choice: " + player1Choice)
+                console.log("player 2 choice: " + player2Choice)
+                $("#rock1").addClass("d-none");
+                $("#paper1").addClass("d-none");
+                gameRoom.child(player1Key).update({
+                    ready: false
+                });
+
+                rpsGame()
             });
-            rpsGame()
-        });
+
+
+            $("#rock1").on("click", function (event) {
+                // Prevent the page from refreshing
+                event.preventDefault();
+                gameRoom.child(player1Key).update({
+                    choice: "rock"
+                });
+                player1Choice = "rock"
+                console.log("player 1 choice: " + player1Choice)
+                console.log("player 2 choice: " + player2Choice)
+                $("#paper1").addClass("d-none");
+                $("#scissors1").addClass("d-none");
+                gameRoom.child(player1Key).update({
+                    ready: false
+                });
+                rpsGame()
+            });
         }
 
         userInQueue.onDisconnect().remove();
